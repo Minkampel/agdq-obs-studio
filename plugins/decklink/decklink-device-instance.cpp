@@ -359,18 +359,12 @@ void DeckLinkDeviceInstance::DisplayVideoFrame(video_data *frame)
 		return;
 	}
 
-	uint8_t * nextWord;
-	decklinkOutputFrame->GetBytes((void**)&nextWord);
+	uint8_t *destData;
+	decklinkOutputFrame->GetBytes((void**)&destData);
 
 	uint8_t *outData = frame->data[0];
 
-	uint32_t wordsRemaining = (decklinkOutput->GetWidth() * decklinkOutput->GetHeight()) * 2;
-
-	while (wordsRemaining > 0)
-	{
-		*(nextWord++) = *(outData++);
-		wordsRemaining = wordsRemaining - 1;
-	}
+	memcpy(destData, outData, (decklinkOutput->GetWidth() * decklinkOutput->GetHeight()) * 2);
 
 	output->DisplayVideoFrameSync(decklinkOutputFrame);
 }
