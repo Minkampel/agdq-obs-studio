@@ -30,6 +30,8 @@ protected:
 	AudioRepacker           *audioRepacker = nullptr;
 	speaker_layout          channelFormat = SPEAKERS_STEREO;
 
+	IDeckLinkMutableVideoFrame *decklinkOutputFrame;
+
 	void FinalizeStream();
 	void SetupVideoFormat(DeckLinkDeviceMode *mode_);
 

@@ -314,6 +314,20 @@ bool DeckLinkDeviceInstance::StartOutput(DeckLinkDeviceMode *mode_)
 
 	mode = mode_;
 
+	auto decklinkOutput = dynamic_cast<DeckLinkOutput*>(decklink);
+	if (decklinkOutput == nullptr) {
+		return false;
+	}
+
+	HRESULT result;
+	result = output->CreateVideoFrame(decklinkOutput->GetWidth(), decklinkOutput->GetHeight(),
+									  decklinkOutput->GetWidth()*2,
+									  bmdFormat8BitYUV, bmdFrameFlagDefault, &decklinkOutputFrame);
+	if (result != S_OK) {
+		blog(LOG_ERROR ,"failed to make frame 0x%X", result);
+		return false;
+	}
+
 	return true;
 }
 
@@ -330,29 +344,23 @@ bool DeckLinkDeviceInstance::StopOutput()
 
 	output->DisableAudioOutput();
 
+	if (decklinkOutputFrame != nullptr) {
+		decklinkOutputFrame->Release();
+		decklinkOutputFrame = nullptr;
+	}
+	
 	return true;
 }
 
 void DeckLinkDeviceInstance::DisplayVideoFrame(video_data *frame)
 {
-	HRESULT                         result;
-	IDeckLinkMutableVideoFrame*     decklinkFrame = nullptr;
-
 	auto decklinkOutput = dynamic_cast<DeckLinkOutput*>(decklink);
 	if (decklinkOutput == nullptr) {
 		return;
 	}
 
-	result = output->CreateVideoFrame(decklinkOutput->GetWidth(), decklinkOutput->GetHeight(),
-									  decklinkOutput->GetWidth()*2,
-									  bmdFormat8BitYUV, bmdFrameFlagDefault, &decklinkFrame);
-	if (result != S_OK) {
-		blog(LOG_ERROR ,"failed to make frame 0x%X", result);
-		return;
-	}
-
 	uint8_t * nextWord;
-	decklinkFrame->GetBytes((void**)&nextWord);
+	decklinkOutputFrame->GetBytes((void**)&nextWord);
 
 	uint8_t *outData = frame->data[0];
 
@@ -364,9 +372,7 @@ void DeckLinkDeviceInstance::DisplayVideoFrame(video_data *frame)
 		wordsRemaining = wordsRemaining - 1;
 	}
 
-	output->DisplayVideoFrameSync(decklinkFrame);
-
-	decklinkFrame->Release();
+	output->DisplayVideoFrameSync(decklinkOutputFrame);
 }
 
 void DeckLinkDeviceInstance::WriteAudio(audio_data *frames)
