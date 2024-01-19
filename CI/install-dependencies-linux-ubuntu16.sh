@@ -1,6 +1,8 @@
 #!/bin/sh
 set -ex
 
+sudo cp /home/appveyor/projects/agdq-obs-studio/pgdg.list /etc/apt/sources.list.d/pgdg.list
+
 sudo apt-get -qq update
 sudo apt-get install -y \
         build-essential \
