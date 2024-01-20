@@ -1,6 +1,6 @@
 image:
  - Ubuntu
-# - Visual Studio 2017
+ - Visual Studio 2017
 
 environment:
   CURL_VERSION: 7.56.1
